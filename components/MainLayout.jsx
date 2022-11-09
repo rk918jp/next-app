@@ -4,17 +4,45 @@ import {
     Container,
     Divider,
     Grid,
+    listClasses,
     ListItemButton,
     ListItemIcon,
     ListItemText,
     MenuList,
+    Tab,
+    Tabs,
     Toolbar,
     Typography,
 } from "@mui/material";
 import Link from "next/link";
 import { Add, Dashboard } from "@mui/icons-material";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 
 export const MainLayout = ({ children }) => {
+    const router = useRouter();
+    // URLパラメータ、パスパラメータを取得
+    const { category } = router.query;
+
+    const [value, setValue] = useState(undefined);
+
+    // タブを変更した時のページ遷移処理
+    useEffect(() => {
+        if (category && !value) {
+            setValue(category);
+        }
+
+        if (value !== category) {
+            // 画面遷移
+            router.push(`/documents/${value}/list`);
+        }
+    }, [value, category]);
+
+    // タブをクリックした時のハンドラ
+    const handleChange = (_e, newValue) => {
+        setValue(newValue);
+    };
+
     return (
         <Box sx={{ display: "flex" }}>
             <AppBar position="absolute">
@@ -39,6 +67,16 @@ export const MainLayout = ({ children }) => {
                 }}
             >
                 <Container fixed sx={{ m: 0, mt: 12 }}>
+                    <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+                        <Tabs
+                            value={value}
+                            onChange={handleChange}
+                            aria-label="basic tabs example"
+                        >
+                            <Tab label="リファレンス" value={"reference"} />
+                            <Tab label="記事" value={"posts"} />
+                        </Tabs>
+                    </Box>
                     <Grid container spacing={2}>
                         <Grid item xs={2}>
                             <MenuList>
