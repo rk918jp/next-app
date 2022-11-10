@@ -1,39 +1,83 @@
 import { MainLayout } from "../../../components/MainLayout";
-import { Card, Paper } from "@mui/material";
+import {
+    Button,
+    Card,
+    CardActions,
+    CardContent,
+    CardMedia,
+    Grid,
+    Skeleton,
+    Typography,
+} from "@mui/material";
 import { useRouter } from "next/router";
+import moment from "moment";
+import useSwr from "swr";
+import axios from "axios";
+
+const fetcher = (url) => axios.get(url).then((res) => res.data);
 
 export default function Home() {
     const router = useRouter();
     const { category } = router.query;
 
-    // const [data] = useSwr();
-    // APIで取得したデータの想定
-    const posts = [
-        { id: 1, title: "post1" },
-        { id: 2, title: "post2" },
-        { id: 3, title: "post3" },
-        { id: 4, title: "post4" },
-        { id: 5, title: "post5" },
-    ];
+    const { data, error } = useSwr("/api/posts", fetcher);
+    const isLoading = !data && !error;
 
     return (
         <MainLayout>
-            <Paper>
-                {/* categoryによって出し分けるサンプル */}
-                {category === "reference"
-                    ? "リファレンス"
-                    : category === "posts"
-                    ? "ポスト"
-                    : undefined}
-
-                {posts.map((post) => (
-                    <PostCard post={post} key={post.id} />
-                ))}
-            </Paper>
+            {isLoading ? (
+                <Skeleton />
+            ) : (
+                <Grid container spacing={2} sx={{ mt: 2 }}>
+                    {data.map((post) => (
+                        <Grid item xs={4} key={post.id}>
+                            <Card sx={{ maxWidth: 345 }}>
+                                <CardMedia
+                                    component="img"
+                                    height="140"
+                                    image="https://placehold.jp/150x150.png"
+                                    alt="green iguana"
+                                />
+                                <CardContent>
+                                    <Typography
+                                        gutterBottom
+                                        variant="h5"
+                                        component="div"
+                                    >
+                                        {post.title}
+                                    </Typography>
+                                    <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                    >
+                                        Lizards are a widespread group of
+                                        squamate reptiles, with over 6,000
+                                        species, ranging across all continents
+                                        except Antarctica
+                                    </Typography>
+                                    <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                        sx={{ mt: 2 }}
+                                    >
+                                        {/* NOTE: 投稿日時をYYYY/MM/DDで表示する場合 */}
+                                        {/*{moment(post.publishedAt).format("YYYY/MM/DD")}*/}
+                                        {moment().diff(
+                                            post.publishedAt,
+                                            "days"
+                                        )}
+                                        日前
+                                    </Typography>
+                                </CardContent>
+                                <CardActions>
+                                    <Button size="small">Share</Button>
+                                    <Button size="small">Learn More</Button>
+                                </CardActions>
+                            </Card>
+                        </Grid>
+                    ))}
+                </Grid>
+            )}
         </MainLayout>
     );
 }
-
-const PostCard = ({ post }) => {
-    return <Card>{post.title}</Card>;
-};
